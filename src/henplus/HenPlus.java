@@ -233,7 +233,7 @@ public final class HenPlus implements Interruptable {
          * sig) { System.out.println("caught: " + sig); } }; try {
          * sun.misc.Signal.handle(new sun.misc.Signal("TSTP"), stoptest); }
          * catch (Exception e) { // ignore. }
-         * 
+         *
          * end testing
          */
     }
@@ -339,7 +339,22 @@ public final class HenPlus implements Interruptable {
     private void storeLineInHistory() {
         final String line = _historyLine.toString();
         if (!"".equals(line) && !line.equals(_previousHistoryLine)) {
-            Readline.addToHistory(line);
+            try {
+                Readline.addToHistory(line);
+            } catch (Exception uee) {
+                // This error might happen if HenPlus is running
+                // on a system which doesn't have full encoding support --
+                // such as Alpine linux -- and the query (or query results?)
+                // include non-ASCII characters. This error will essetinally
+                // kill HenPlus, but it doesn't really affect the output,
+                // so we will ignore it.
+
+                // Notice:
+                // The exception thrown is really java.io.UnsupportedEncoding
+                // but due to it being thrown from the native code, it's not
+                // declared properly on the java interface so we can't
+                // specifically catch it here.
+            }
             _previousHistoryLine = line;
         }
         _historyLine.setLength(0);
@@ -515,7 +530,7 @@ public final class HenPlus implements Interruptable {
 
     /**
      * Provides access to the session manager. He maintains the list of opened sessions with their names.
-     * 
+     *
      * @return the session manager.
      */
     public SessionManager getSessionManager() {
@@ -561,7 +576,7 @@ public final class HenPlus implements Interruptable {
     /**
      * substitute the variables in String 'in', that are in the form $VARNAME or ${VARNAME} with the equivalent value that is found
      * in the Map. Return the varsubstituted String.
-     * 
+     *
      * @param in
      *            the input string containing variables to be substituted (with leading $)
      * @param variables
